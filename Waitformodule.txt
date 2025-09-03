@@ -1,0 +1,24 @@
+function waitForModule(name, cb) {
+    var intv = setInterval(function () {
+        var m = Process.findModuleByName(name);
+        if (m) {
+            clearInterval(intv);
+            cb(m);
+        }
+    }, 100); // 100ms마다 체크
+}
+
+// 사용 예시
+waitForModule("myplugin.dll", function (module) {
+    console.log("[+] 모듈 로드됨:", module.name, module.base);
+    
+    // 여기서 hookByIdaAddr 호출
+    hookByIdaAddr("myplugin.dll", 0x1010A0, 0x10000000, {
+        onEnter: function (args) {
+            console.log("[*] 함수 진입! arg0 =", args[0].toInt32());
+        },
+        onLeave: function (retval) {
+            console.log("[*] 함수 종료, retval =", retval.toInt32());
+        }
+    });
+});
